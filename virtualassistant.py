@@ -8,21 +8,24 @@ import pyjokes
 listener = sr.Recognizer()
 engine = pyttsx3.init()
 voices = engine.getProperty('voices')
-engine.setProperty('voice', voices[2].id)
+engine.setProperty('voice', voices[1].id if len(voices) > 1 else voices[0].id)  # ✅ safe fallback
+
 def speak(text):
     engine.say(text)
     engine.runAndWait()
+
 def take_command():
+    command = None  # ✅ initialize so return always works
     try:
         with sr.Microphone() as source:
             print("Calibrating for background noise...")
             listener.adjust_for_ambient_noise(source, duration=1)
-            print("Say something!")
+            print("Listening...")
             audio = listener.listen(source)
-            command = listener.recognize_google(audio)
-            print(command)
+            command = listener.recognize_google(audio).lower()  # ✅ lowercase for reliable matching
+            print(f"You said: {command}")
     except sr.UnknownValueError:
-        print("Could not understand audio")
+        speak("Sorry, I didn't catch that.")
     except sr.RequestError as e:
         print(f"Google API error: {e}")
     except OSError:
@@ -31,17 +34,18 @@ def take_command():
 
 def run_Foris():
     command = take_command()
-    print(command)
+    if not command:  # ✅ guard against None before doing 'in' checks
+        return
     if 'play' in command:
-        song = command.replace('play', '')
-        speak('Playing '+ song)
+        song = command.replace('play', '').strip()
+        speak('Playing ' + song)
         pywhatkit.playonyt(song)
     elif 'time' in command:
         time = datetime.datetime.now().strftime('%I:%M %p')
         speak(f'The current time is {time}')
         print(time)
-    elif 'who is ' in command:
-        person = command.replace('who is ', '')
+    elif 'who is' in command:
+        person = command.replace('who is', '').strip()
         info = wikipedia.summary(person, 1)
         print(info)
         speak(info)
@@ -50,6 +54,7 @@ def run_Foris():
         print(joke)
         speak(joke)
     else:
-        speak('Sorry, I didn\'t understand that command')
+        speak("Sorry, I didn't understand that command")
+
 while True:
     run_Foris()
