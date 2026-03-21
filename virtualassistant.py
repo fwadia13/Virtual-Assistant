@@ -8,21 +8,21 @@ import pyjokes
 listener = sr.Recognizer()
 engine = pyttsx3.init()
 voices = engine.getProperty('voices')
-engine.setProperty('voice', voices[1].id if len(voices) > 1 else voices[0].id)  # ✅ safe fallback
+engine.setProperty('voice', voices[1].id if len(voices) > 1 else voices[0].id)  
 
 def speak(text):
     engine.say(text)
     engine.runAndWait()
 
 def take_command():
-    command = None  # ✅ initialize so return always works
+    command = None  
     try:
         with sr.Microphone() as source:
             print("Calibrating for background noise...")
             listener.adjust_for_ambient_noise(source, duration=1)
             print("Listening...")
             audio = listener.listen(source)
-            command = listener.recognize_google(audio).lower()  # ✅ lowercase for reliable matching
+            command = listener.recognize_google(audio).lower()  
             print(f"You said: {command}")
     except sr.UnknownValueError:
         speak("Sorry, I didn't catch that.")
@@ -34,7 +34,7 @@ def take_command():
 
 def run_Foris():
     command = take_command()
-    if not command:  # ✅ guard against None before doing 'in' checks
+    if not command:  
         return
     if 'play' in command:
         song = command.replace('play', '').strip()
